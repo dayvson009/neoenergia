@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faturas</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #lista-faturas {
+        margin: 20px;
+      }
+
+      .fatura-item {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 5px 0;
+        cursor: pointer;
+      }
+
+      #detalhes-fatura {
+        margin: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        max-width: 1250px;
+      }
+
+      .hd-conta {
+        padding: 20px;
+        text-align: center;
+        border: 1px solid;
+        display: block;
+      }
+
+      .all-content {
+        display: flex;
+      }
+
+      .item {
+        border: 1px solid #000;
+        padding: 20px;
+        margin: 11px 0;
+        text-align: center;
+      }
+      .item:first-child {
+        text-align: left;
+      }
+
+      img {
+        display: block;
+        width: 180px;
+      }
+
+      button {
+        margin-top: 10px;
+      }
+
+      .publi {
+        display: flex;
+        flex-direction: column;
+        width: 250px;
+      }
+
+      @media print {
+        #consulta-form {
+          visibility: hidden;
+        }
+
+        .publi {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>2ª Via Celpe - Neoenergia - PE</h1>
+      <form id="consulta-form">
+        <label for="cpf">CPF:</label>
+        <input type="text" id="cpf" name="cpf" required />
+        <label for="dataNascimento">Data de Nascimento:</label>
+        <input type="date" id="dataNascimento" name="dataNascimento" required />
+        <button type="submit">Buscar Faturas</button>
+      </form>
+
+      <div id="lista-faturas"></div>
+
+      <div id="detalhes-fatura">
+        <button onclick="voltarParaLista()">Voltar</button>
+        <button onclick="imprimirFatura()">Imprimir</button>
+        <div id="detalhes-conteudo"></div>
+      </div>
+    </div>
+    <div class="publi">
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <script>
+      document
+        .getElementById("consulta-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const cpf = document.getElementById("cpf").value;
+          const dataNascimento =
+            document.getElementById("dataNascimento").value;
+
+          if (!cpf || !dataNascimento) {
+            alert("Por favor, preencha todos os campos.");
+            return;
+          }
+
+          const url = `https://avapineanl.neoenergia.com/areanaologada/2.0.0/faturas-simplificada?documento=${cpf}&tipoCliente=F&dataNascimento=${dataNascimento}&codUc=&codigo=&opcaoSSOS=S&recaptchaAnl=true&recaptcha=03AFcWeA62Gz9DG9opIWs8zFH_oZWFYYq5snKfXqDNfrkBpKBYAsTB5Q6GrgX0Hy6JBPljIceVAMmJ-Obpqy4f0-gDJXPc27uRrvLe9MN8sFMINF_PIqgSNYWOcr_rnhuGWHqTCo3f78gz7nZb8cEr514i3of_Fv9UFLH1t-cCzgIzceINnbolgfL82RAr6AS9HavEyF6IRChjirIiK2BWccCvbOPIZwsma18JohHktnoiHWlBPrcVgcCPWv9EryE7msMTdnheJcciz_ehuEJKmGUGvmHEa4wa0KWE_39mjRqEiNerPxFKsRBbUG84fMHxcWAKO6HXYdYZt7V2WAEYfajssOEbbba7Per5BV-oBMrFCOh9wfCCCYd-jgDJkRcbnc3OsG1jTglaYv4a0VEKxiCO4vskWsJkINczCxrk6BWsFWU92NueCGkkXMKPtHo0tTqbF0Gw4fZOO6jIKWXYQf5dTveR6vN5t5PkCM1zCJHyqNTm2Q1Clkejozc9_kKejf350SGdu_rillcOlwdrUg1i3rc00L_qlscKJCCO9w_mZK_96bPdnDa3Eae4EapMpqeSxDCePFJNoYgY_AfS9N744V7bO96Q3VbmkJizvZrYfTyv5SbswVINz9MamkCd5U8Njztfvevaaw2V1wqSIp7f3bmNjTEfBobra2hYvEXkx27r6jk4kupSFJuwMpUKf4LBoA_1MQwbKnem1wWu2pRtEpHa6v_EAMTdk1UJkbSMptdsV--w8QcKwPt8Xc51_FZp5Knm77WH86upKsKl6aqewa1N4OOLYdXxlyVGoTLcedBoDWVGoRKIWfgyhmB-pyVLINbzHQOEPln7aMyzdyBEk0Oa59Ex_hqM68wtibSSzik_fe4oOBL8Gdop4UGPo2X3iTpldTn4siQr0YJxrhjI1PDDCrK7qQ3_mXMeGrq48jXkQKMezUGLwltar0RmZ804IgUXuJ8-IdIdTCIXlU5NQHKAx0Ei0wNpSZNaRgG4KFKtc9uT9pm2hqPuxwr8WjyWbGraOX31_Ltp81D_WE0YasdjBmZI4L8rbtztQJD41OceE1328cxcR4dbyJ7YYowFXCeo7sOkqgx1o5cHNCh6kEHTVX_uWT8B5-fMS1j9gtErPIVSZygPkWgNVwqMmUmGchG_Q30xberml7Y_vCdUjhoZaox5jTynRee9AWxXg4XaJTPirTcBQSh0UNMMuMJqGwySeZkxApHAH2zVMb_XLZrazPQOWzbneSf3r4uDbK-YuzrQUOTdheIbEjUmf25Rmv7aCfggezNo86QYDvQbGQ3gBoEXmViCJthW2z_IMwA57R3MniFl4wZHPCwzjtPD-KtK-MXdu_v5wXk1tochXmPLEz_L4GWvgkxGeE9E9YnQQ3YXx9rvOV3c-Nw_J4C0PMvgkMxnIkbtS2ILdi8fewE7Wt8nMsrwSYcw1FutGVDFLcYVmh2xZbektYR68MqfNm-YLY-CHNU3dSjXfK65vOP0OFaVQAl7DFgDDPTj_MRWxzZgzj3kP0GfJSw1vXvh5x4ru094X431TjDa0BBNAEpM-bVsRvUh0spiYEh3BJLCDzmn_UDUqS8MEYIo4-S1OSwjpXNgf3_M7EHpsnBU9FtDJmOouLJyfdTe4qc6-UBBjAbZlTpPISJKGwHDmcmjBsTmYKqlEJTKrRnkcoW39GvtUNcNqR9qOVMCM8gNtojY3guCJBMrG6GfOTpbiGx5qocYhfIbPjjvhMk18SqcBisHNihuumnINoOz_BRd-x4xqop0UUB6bH5cK9VLAyUPLdLYUt94YC2JkQTFhQagtGrS4lMmzxvqZs2NMI4kDG4n2-RhPK-60kNjXAsLsmLRsE3_LMD07ZRG_J1Mxn6Lj1PjYXhQFJswT9EhlcqN_nb-aYQ9b0KjYgazF7O0xWYXgdWUvuAjTE9IzP1lLxf3xI5CWnRsrFhMnqK7gfbQQ7bR1G_u0llpEmYxIi4PwsYvhrb0EQCqxhTvqNMj3Yuz9tIPStRU0qIsTiq3vVWnANdyxHGlH7Q&protocolo=20250404138050859&protocoloSonda=&tipificacao=1031609&documentoSolicitante=${cpf}&canalSolicitante=AGP&usuario=WSO2_CONEXAO&distribuidora=CELPE&regiao=NE&byPassActiv=X`;
+
+          fetch(url)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Erro ao buscar as faturas.");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              console.log(data);
+              console.log("TESTE");
+              console.log(data.faturasAbertas.length);
+              if (data && data.faturasAbertas.length > 0) {
+                exibirFaturas(data.faturasAbertas);
+              } else {
+                alert("Nenhuma fatura encontrada.");
+              }
+            })
+            .catch((error) => {
+              console.error("Erro:", error);
+              alert("Ocorreu um erro ao buscar as faturas.");
+            });
+        });
+
+      const listaFaturas = document.getElementById("lista-faturas");
+      const detalhesFatura = document.getElementById("detalhes-fatura");
+      const detalhesConteudo = document.getElementById("detalhes-conteudo");
+
+      function exibirFaturas(faturas) {
+        listaFaturas.innerHTML = "";
+        faturas.forEach((fatura, index) => {
+          const faturaItem = document.createElement("div");
+          faturaItem.className = "fatura-item";
+          faturaItem.innerHTML = `
+                  <strong>Data de Vencimento:</strong> ${fatura.dataVencimento}<br>
+                  <strong>Valor:</strong> R$ ${fatura.valorEmissao}<br>
+                  <strong>Status:</strong> ${fatura.statusFatura}
+              `;
+          faturaItem.onclick = () => exibirDetalhesFatura(index);
+          listaFaturas.appendChild(faturaItem);
+        });
+
+        window.exibirDetalhesFatura = function (index) {
+          const fatura = faturas[index];
+          detalhesConteudo.innerHTML = `
+                <br>
+                <br>
+                <br>
+                <br>
+            <strong class="hd-conta">CONTA ENERGIA ELÉTRICA 2ª VIA | Nº DA FATURA ${fatura.numeroFatura}</strong>
+            <div class="all-content">
+              <div class="item">
+                DADOS DO CLIENTE
+                <br>
+                <br>
+                <strong>Endereço:</strong> <p>${fatura.endereco}</p>
+
+              </div>
+              <figure class="item"><img src="./logo.jpg" alt="Logo NeoEnergia" /></figure>
+              <div class="item">
+                <p>DATA DE VENCIMENTO</p> <h2>${fatura.dataVencimento}</h2>
+                <p>TOTAL A PAGAR (R$)</p> <h2>${fatura.valorEmissao}</h2>
+              </div>
+              <div class="item">
+                <strong>DATA EMISSÃO DA NOTA</strong> <p>${fatura.mesReferencia}</p>
+                <strong>SITUAÇÃO ATUAL</strong> <p>${fatura.statusFatura}</p>
+                <strong>IDENTIFICAÇÃO</strong> <p>${fatura.uc}</p>
+              </div>
+            </div>
+            <svg id="barcode"></svg>
+        `;
+          JsBarcode("#barcode", fatura.numeroCodigoBarras, {
+            format: "CODE128",
+            displayValue: true,
+          });
+          listaFaturas.style.display = "none";
+          detalhesFatura.style.display = "block";
+        };
+
+        window.voltarParaLista = function () {
+          detalhesFatura.style.display = "none";
+          listaFaturas.style.display = "block";
+        };
+
+        window.imprimirFatura = function () {
+          window.print();
+        };
+      }
+    </script>
+  </body>
+</html>
