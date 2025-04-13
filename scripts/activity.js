@@ -24,7 +24,7 @@ function getDeviceType() {
 
 (async ()=>{
   await getIP();
-  sendActivity("Acessou o site oferta.siteee.com.br/hidraliso");
+  sendActivity(`Acessou o site ${location.href}`);
 })()
 
 
